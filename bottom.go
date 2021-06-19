@@ -14,7 +14,7 @@ type Bottom struct {
 	ErrorFunc   func(Context, error)
 }
 
-func New(user, password, server, allows string, verify bool) (b Bottom, err error) {
+func New(user, password, server string, verify bool) (b Bottom, err error) {
 	u, err := url.Parse(server)
 	if err != nil {
 		return
@@ -43,6 +43,7 @@ func New(user, password, server, allows string, verify bool) (b Bottom, err erro
 
 	b.Client = girc.New(config)
 	b.Middlewares = NewMiddlewares()
+	b.ErrorFunc = b.DefaultErrorFunc
 
 	b.Client.Handlers.Add(girc.PRIVMSG, b.Privmsg)
 
