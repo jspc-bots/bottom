@@ -74,7 +74,7 @@ func TestBottom_Privmsg(t *testing.T) {
 	}
 
 	t.Run("invocation count", func(t *testing.T) {
-		b.Privmsg(nil, girc.Event{
+		b.privmsg(nil, girc.Event{
 			Source:    &girc.Source{Name: "#testing"},
 			Command:   "PRIVMSG",
 			Params:    []string{"#testing", "PATTERN"},
@@ -88,7 +88,7 @@ func TestBottom_Privmsg(t *testing.T) {
 
 	t.Run("too old", func(t *testing.T) {
 		count = 0
-		b.Privmsg(nil, girc.Event{
+		b.privmsg(nil, girc.Event{
 			Source:    &girc.Source{Name: "#testing"},
 			Command:   "PRIVMSG",
 			Params:    []string{"#testing", "PATTERN"},
@@ -102,7 +102,7 @@ func TestBottom_Privmsg(t *testing.T) {
 
 	t.Run("doesn't match pattern", func(t *testing.T) {
 		count = 0
-		b.Privmsg(nil, girc.Event{
+		b.privmsg(nil, girc.Event{
 			Source:    &girc.Source{Name: "#testing"},
 			Command:   "PRIVMSG",
 			Params:    []string{"#testing", "some other message"},

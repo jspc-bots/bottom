@@ -8,13 +8,31 @@ import (
 	"github.com/lrstanley/girc"
 )
 
+// Bottom is the transport logic for an IRC Bot
+//
+// It handles things like routing messages and error handling
 type Bottom struct {
 	Middlewares *Middlewares
 	Client      *girc.Client
 	ErrorFunc   func(Context, error)
 }
 
-func New(user, password, server string, verify bool) (b Bottom, err error) {
+// New accepts some connection parameters, initialises an IRC client,
+// and sets up an empty Middlewares list, and a default ErrorFunc
+//
+// It will error for malformed server addresses. The form it expects is:
+//   [irc|ircs]://hostname:port
+//
+// So:
+//   1. `irc://irc.example.com:6667`
+//   2. `ircs://irc.example.com:6697`
+//
+// Are valid, whereas
+//
+//   1. `irc.example.com`
+//
+// Is not.
+func New(user, password, server string, verifyTLS bool) (b Bottom, err error) {
 	u, err := url.Parse(server)
 	if err != nil {
 		return
@@ -37,20 +55,20 @@ func New(user, password, server string, verify bool) (b Bottom, err error) {
 		},
 		SSL: u.Scheme == "ircs",
 		TLSConfig: &tls.Config{
-			InsecureSkipVerify: !verify,
+			InsecureSkipVerify: !verifyTLS,
 		},
 	}
 
 	b.Client = girc.New(config)
 	b.Middlewares = NewMiddlewares()
-	b.ErrorFunc = b.DefaultErrorFunc
+	b.ErrorFunc = b.defaultErrorFunc
 
-	b.Client.Handlers.Add(girc.PRIVMSG, b.Privmsg)
+	b.Client.Handlers.Add(girc.PRIVMSG, b.privmsg)
 
 	return
 }
 
-func (b Bottom) Privmsg(_ *girc.Client, e girc.Event) {
+func (b Bottom) privmsg(_ *girc.Client, e girc.Event) {
 	var err error
 
 	ctx := make(Context)
@@ -67,6 +85,6 @@ func (b Bottom) Privmsg(_ *girc.Client, e girc.Event) {
 	}
 }
 
-func (b Bottom) DefaultErrorFunc(ctx Context, err error) {
+func (b Bottom) defaultErrorFunc(ctx Context, err error) {
 	b.Client.Cmd.Message(ctx["sender"].(string), err.Error())
 }
