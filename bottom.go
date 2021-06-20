@@ -57,6 +57,7 @@ func New(user, password, server string, verifyTLS bool) (b Bottom, err error) {
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: !verifyTLS,
 		},
+		AllowFlood: true,
 	}
 
 	b.Client = girc.New(config)
