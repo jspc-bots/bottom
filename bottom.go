@@ -15,6 +15,11 @@ type Bottom struct {
 	Middlewares *Middlewares
 	Client      *girc.Client
 	ErrorFunc   func(Context, error)
+
+	// nick is the name this bot is using
+	// it's useful for testing whether messages
+	// come from a channel, or directly
+	nick string
 }
 
 // New accepts some connection parameters, initialises an IRC client,
@@ -63,6 +68,7 @@ func New(user, password, server string, verifyTLS bool) (b Bottom, err error) {
 	b.Client = girc.New(config)
 	b.Middlewares = NewMiddlewares()
 	b.ErrorFunc = b.defaultErrorFunc
+	b.nick = user
 
 	b.Client.Handlers.Add(girc.PRIVMSG, b.privmsg)
 
@@ -74,6 +80,7 @@ func (b Bottom) privmsg(_ *girc.Client, e girc.Event) {
 
 	ctx := make(Context)
 	ctx["sender"] = e.Source.Name
+	ctx["recipient"] = b.nick
 	ctx["message"] = e.Last()
 
 	for _, m := range *b.Middlewares {

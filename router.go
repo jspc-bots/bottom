@@ -62,7 +62,13 @@ func (r *Router) Do(ctx Context, e girc.Event) (err error) {
 
 	msg := []byte(ctx["message"].(string))
 	sender := ctx["sender"].(string)
+	recipient := ctx["recipient"].(string)
+
 	channel := e.Params[0]
+	if channel == recipient {
+		// direct message, so respond to the sender
+		channel = sender
+	}
 
 	for r, f := range r.routes {
 		if r.Match(msg) {
