@@ -56,12 +56,20 @@ func TestNew(t *testing.T) {
 }
 
 func TestBottom_Privmsg(t *testing.T) {
-	var count int
+	var (
+		count   int
+		sender  string
+		channel string
+		msg     string
+	)
 
 	b, _ := New("", "", "ircs://irc.example.com:6697", true)
 
 	r := NewRouter()
-	r.AddRoute("(i?)PATTERN", func(_ string, _ []string) error {
+	r.AddRoute("(i?)PATTERN", func(s, c string, m []string) error {
+		sender = s
+		channel = c
+		msg = m[0]
 		count++
 
 		return fmt.Errorf("an error")
@@ -83,6 +91,45 @@ func TestBottom_Privmsg(t *testing.T) {
 
 		if count != 1 {
 			t.Errorf("expected 1, received %d", count)
+		}
+	})
+
+	t.Run("sender name", func(t *testing.T) {
+		b.privmsg(nil, girc.Event{
+			Source:    &girc.Source{Name: "test-user"},
+			Command:   "PRIVMSG",
+			Params:    []string{"#testing", "PATTERN"},
+			Timestamp: time.Now(),
+		})
+
+		if sender != "test-user" {
+			t.Errorf("expected %q, received %q", "test-user", sender)
+		}
+	})
+
+	t.Run("channel name", func(t *testing.T) {
+		b.privmsg(nil, girc.Event{
+			Source:    &girc.Source{Name: "test-user"},
+			Command:   "PRIVMSG",
+			Params:    []string{"#testing", "PATTERN"},
+			Timestamp: time.Now(),
+		})
+
+		if channel != "#testing" {
+			t.Errorf("expected %q, received %q", "#testing", sender)
+		}
+	})
+
+	t.Run("message content", func(t *testing.T) {
+		b.privmsg(nil, girc.Event{
+			Source:    &girc.Source{Name: "test-user"},
+			Command:   "PRIVMSG",
+			Params:    []string{"#testing", "PATTERN"},
+			Timestamp: time.Now(),
+		})
+
+		if msg != "PATTERN" {
+			t.Errorf("expected %q, received %q", "PATTERN", sender)
 		}
 	})
 

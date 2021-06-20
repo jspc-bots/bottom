@@ -8,7 +8,12 @@ import (
 )
 
 // RouterFunc is used in routing events
-type RouterFunc func(sender string, groups []string) error
+//
+// Functions should expect the following information:
+//  1. sender - the nick of the author of the message
+//  2. channel - the channel the message was sent in (if sender == channel, then assume a private message)
+//  3. groups - any regexp groups extracted from the message. groups[0] is *always* the full message
+type RouterFunc func(sender, channel string, groups []string) error
 
 // Router is a Middleware implementation, containing routing logic
 // for different Events.
@@ -57,10 +62,11 @@ func (r *Router) Do(ctx Context, e girc.Event) (err error) {
 
 	msg := []byte(ctx["message"].(string))
 	sender := ctx["sender"].(string)
+	channel := e.Params[0]
 
 	for r, f := range r.routes {
 		if r.Match(msg) {
-			return f(sender, groupsStrings(r.FindAllSubmatch(msg, -1)[0]))
+			return f(sender, channel, groupsStrings(r.FindAllSubmatch(msg, -1)[0]))
 		}
 	}
 
