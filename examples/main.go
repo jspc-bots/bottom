@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/jspc/bottom"
+	"github.com/lrstanley/girc"
 )
 
 var (
@@ -20,6 +21,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	b.Client.Handlers.Add(girc.CONNECTED, func(c *girc.Client, e girc.Event) {
+		c.Cmd.Join("#test-chan")
+	})
 
 	router := bottom.NewRouter()
 	router.AddRoute("Hello example", func(sender, channel string, groups []string) error {
