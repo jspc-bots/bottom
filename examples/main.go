@@ -22,12 +22,12 @@ func main() {
 	}
 
 	router := bottom.NewRouter()
-	router.AddRoute("Hello example", func(sender string, groups []string) error {
-		b.Client.Cmd.Messagef(sender, "And hello to you too")
+	router.AddRoute("Hello example", func(sender, channel string, groups []string) error {
+		b.Client.Cmd.Messagef(channel, "And hello to you too %s", sender)
 		return nil
 	})
 
-	router.AddRoute("show an error", func(sender string, groups []string) error {
+	router.AddRoute("show an error", func(sender, channel string, groups []string) error {
 		return fmt.Errorf("an error :(")
 	})
 
