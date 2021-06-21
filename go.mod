@@ -1,4 +1,4 @@
-module github.com/jspc/bottom
+module github.com/jspc-bots/bottom
 
 go 1.16
 
