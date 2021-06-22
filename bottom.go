@@ -8,6 +8,10 @@ import (
 	"github.com/lrstanley/girc"
 )
 
+var (
+	defaultAutoAcceptInvites = true
+)
+
 // Bottom is the transport logic for an IRC Bot
 //
 // It handles things like routing messages and error handling
@@ -15,6 +19,12 @@ type Bottom struct {
 	Middlewares *Middlewares
 	Client      *girc.Client
 	ErrorFunc   func(Context, error)
+
+	// The following are extra tunables which are not
+	// passed in via args, partially for backwards
+	// compatability reasons, but part because the defaults
+	// are sane enough- setting them is not compulsary
+	AutoAcceptInvites bool
 
 	// nick is the name this bot is using
 	// it's useful for testing whether messages
@@ -68,9 +78,15 @@ func New(user, password, server string, verifyTLS bool) (b Bottom, err error) {
 	b.Client = girc.New(config)
 	b.Middlewares = NewMiddlewares()
 	b.ErrorFunc = b.defaultErrorFunc
+	b.AutoAcceptInvites = defaultAutoAcceptInvites
 	b.nick = user
 
 	b.Client.Handlers.Add(girc.PRIVMSG, b.privmsg)
+	b.Client.Handlers.Add(girc.INVITE, func(c *girc.Client, e girc.Event) {
+		if b.AutoAcceptInvites {
+			c.Cmd.Join(e.Last())
+		}
+	})
 
 	return
 }
